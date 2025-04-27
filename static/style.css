@@ -1,0 +1,127 @@
+/* General style reset for the page */
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+}
+
+body {
+    background: rgb(0,0,0);
+    background: linear-gradient(90deg, rgba(0,0,0,1) 0%, rgba(0,0,22,1) 35%, rgba(0,17,38,1) 100%);
+    background-size: cover;
+    font-family: "Roboto", sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+}
+
+/* Main chat container to center everything */
+.chat-app-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+}
+
+/* Styling for the header with the title of the app */
+.header .heading {
+    color: white;
+    font-size: 50px;
+}
+
+/* Styling for the form where users input text */
+.chat-app-container form {
+    display: flex;
+    justify-content: center;
+    width: 75%;
+}
+
+.chat-app-container form .form-container {
+    width: 100%;
+    box-shadow: 0 8px 32px 0 rgba(0, 5, 67, 0.46);
+    backdrop-filter: blur(15px);
+    border-radius: 30px;
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    margin-top: 20px;
+}
+
+input#query-input {
+    width: 85%;
+    padding: 15px;
+    background-color: transparent;
+    border: none;
+    color: white;
+    font-size: 16px;
+    border-radius: 15px;
+    outline: none;
+}
+
+button.submit-button {
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+}
+
+button.submit-button img {
+    width: 30px;
+    height: 30px;
+    margin-left: 15px;
+}
+
+/* Container for displaying input/output text */
+.response-container {
+    width: 100%;
+    margin-top: 30px;
+}
+
+.input-text-container, .output-container {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 10px 20px;
+    margin-bottom: 15px;
+}
+
+.input-query_text {
+    color: white;
+    font-size: 18px;
+    word-wrap: break-word;
+}
+
+/* Result box for bot output */
+.result-box {
+    color: white; /* Ensures all text inside the result box is white */
+}
+
+/* If the output includes an ordered list, ensure it’s styled */
+.result-box ol {
+    color: white;
+}
+
+/* Individual list items are white */
+.result-box ol li {
+    color: white;
+}
+
+/* Ensure the numbers of the ordered list are also white */
+.result-box ol li::marker {
+    color: white;
+}
+
+/* Loading indicator styling */
+#loading-indicator {
+    font-size: 16px;
+    color: white;
+    display: none;
+}
+
+/* Specific style for the question input text */
+.input_query_text {
+    font-weight: 600;
+    color: white; /* Set question text color to white */
+}
