@@ -108,10 +108,10 @@ def home():
                 output = markdown(output)
 
             except Exception as e:
-                # Log the error
+                # Log the error with more details
                 app.logger.error(f"Error occurred: {e}")
-
-                # Show user-friendly error message
+                # This will log stack trace details
+                app.logger.error("Error Details:", exc_info=True)
                 output = "Oops! Something went wrong. Please try again later."
 
     # Render the HTML page and pass input/output to it
