@@ -7,3 +7,6 @@ python-dotenv
 streamlit
 flask
 markdown
+chromadb
+unstructured  
+python-docx

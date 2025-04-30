@@ -1,11 +1,11 @@
 
-# Chatbot with LLama3
+# Chatbot with docbot:v1
 
-This is a simple chatbot application built using the LLama3 model from Meta. The chatbot is deployed using Flask and can be accessed via a web interface.
+This is a simple chatbot application built using the docbot:v1 model from Ollama. The chatbot is deployed using Flask and can be accessed via a web interface.
 
 ## Features
 
-- Uses the LLama3 model from Langchain for natural language processing.
+- Uses the docbot:v1 model from Langchain for SOP Matters
 - Utilizes dotenv for managing environment variables.
 - Implements a ChatPromptTemplate for defining user and system messages.
 - Supports querying the chatbot with user input.
@@ -25,6 +25,7 @@ This is a simple chatbot application built using the LLama3 model from Meta. The
 
    ```bash
    ollama pull llama3
+   ollama pull docbot:v1
    ```
 
 

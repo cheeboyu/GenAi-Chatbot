@@ -2,29 +2,32 @@
 # Import necessary libraries
 # ----------------------------------------
 import os
-from dotenv import load_dotenv  # Load environment variables from a .env file
-
-# LangChain libraries for LLM integration and chaining
+from dotenv import load_dotenv
 from langchain_ollama import OllamaLLM
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.rate_limiters import InMemoryRateLimiter
-
-# Converts a Markdown-formatted string into HTML
 from markdown import markdown
+from flask import Flask, request, render_template, jsonify, Response, stream_with_context
+import time
+import logging
 
-# Flask libraries for web server
-from flask import Flask, request, render_template, jsonify
+# ----------------------------------------
+# Set up logging
+# ----------------------------------------
+logging.basicConfig(level=logging.ERROR)
 
 # ----------------------------------------
 # Load environment variables from .env
 # ----------------------------------------
 load_dotenv()
 
-# Set LangChain-related environment variables (for API authentication and tracing)
-os.environ["LANGCHAIN_API_KEY"] = os.getenv("LANGCHAIN_API_KEY")
-# Enable LangChain tracing (optional, useful for dev)
-os.environ["LANGCHAIN_TRACING_V2"] = "true"
+# api_key = os.getenv("LANGCHAIN_API_KEY")
+# if not api_key:
+#     raise ValueError("The LANGCHAIN_API_KEY environment variable is not set correctly.")
+# os.environ["LANGCHAIN_API_KEY"] = api_key
+# os.environ["LANGCHAIN_TRACING_V2"] = "true"
+os.environ["LANGCHAIN_TRACING_V2"] = "false"
 
 # ----------------------------------------
 # Initialize Flask application
@@ -60,7 +63,7 @@ def initialize_chatbot():
     # Initialize the language model (OllamaLLM)
     llm = OllamaLLM(
         model=os.getenv("OLLAMA_MODEL", "llama3"),
-        max_tokens=500  # Limit response size
+        streaming=True  # ✅ Enable streaming
     )
 
     # Parse the model's raw output into clean plain text
@@ -82,44 +85,54 @@ chain = initialize_chatbot()
 # Supports both GET (initial load) and POST (user submits question)
 # ----------------------------------------
 
+# Home route - serves HTML page
+# ----------------------------------------
 
-@app.route('/', methods=['GET', 'POST'])
+
+@app.route('/', methods=['GET'])
 def home():
-    """
-    Handles GET and POST requests:
-    - GET: Show the empty form
-    - POST: Process user input, run chatbot, and show the response
-    """
-    input_text = None
-    output = None
+    return render_template('index.html')
 
-    if request.method == 'POST':
-        input_text = request.form.get('input_text', '').strip()
+# ----------------------------------------
+# Streaming response route (SSE)
+# ----------------------------------------
 
-        if input_text:
+
+@app.route('/stream', methods=['GET'])
+def stream():
+    question = request.args.get('input_text', '').strip()
+
+    def generate():
+        if question:
             try:
-                # Apply rate limiting to prevent abuse
                 rate_limiter.acquire()
+                full_response = ""  # To accumulate the full response text
 
-                # Pass user input to the chain and receive generated output
-                output = chain.invoke({'question': input_text})
+                # Streaming model response
+                for chunk in chain.stream({'question': question}):
+                    print(chunk)  # Log to track the chunk
+                    full_response += chunk  # Keep appending the chunks
 
-                # Convert markdown bold syntax (**bold**) into HTML <strong> tags
-                output = markdown(output)
+                    # Yield chunks to the client as they are received
+                    yield f"data: {chunk}\n\n"
+                    time.sleep(0.1)
 
+                print(full_response)  # Log the complete response
+
+                # Wrap the complete response in markdown for better rendering on the front-end
+                yield f"data: <markdown>{full_response}</markdown>\n\n"
+                yield "event: done\ndata: end\n\n"  # End the streaming
+                return  # Explicitly exit after sending the full response
             except Exception as e:
-                # Log the error with more details
-                app.logger.error(f"Error occurred: {e}")
-                # This will log stack trace details
-                app.logger.error("Error Details:", exc_info=True)
-                output = "Oops! Something went wrong. Please try again later."
+                logging.error(f"Streaming error for question '{question}': {e}")
+                yield f"data: Error: An unexpected error occurred.\n\n"
+                return
 
-    # Render the HTML page and pass input/output to it
-    return render_template('index.html', input_text=input_text, output=output)
+    return Response(stream_with_context(generate()), content_type='text/event-stream')
 
 
 # ----------------------------------------
-# Start the Flask development server
+# Run Flask app
 # ----------------------------------------
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, threaded=True)

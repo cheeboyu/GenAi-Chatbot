@@ -1,123 +1,227 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Basic metadata for proper text display and responsiveness -->
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <!-- Page title shown in browser tab -->
-  <title>Bo Yu llama Bot</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- Link to external stylesheet for page styling -->
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" type="text/css">
+    <title>Bo Yu ChatBot</title>
 
-  <!-- Preconnect to Google Fonts for faster loading -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  
-  <!-- Import Roboto font family -->
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" type="text/css">
 
-  <!-- Favicon shown in the browser tab -->
-  <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.ico') }}" type="image/x-icon">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.ico') }}" type="image/x-icon">
 
-  <!-- Internal styles specifically for the "Thinking..." loading indicator -->
-  <style>
-    /* Styling for loading indicator (hidden by default) */
-    #loading-indicator {
-      display: none; /* Show only during loading */
-      margin-top: 10px;
-      color: white;
-      font-weight: 500;
-      font-size: 16px;
-      animation: fade 1.5s infinite; /* Light fade animation */
-    }
+    <style>
+        /* Loading text is hidden initially */
+        #loading-indicator {
+            display: none;
+            margin-top: 10px;
+            color: white;
+            font-weight: 500;
+            font-size: 16px;
+            animation: fade 1.5s infinite; /* Blinking effect */
+        }
 
-    /* (Optional) Subtle fade animation */
-    @keyframes fade {
-      0% { opacity: 0.5; }
-      50% { opacity: 1; }
-      100% { opacity: 0.5; }
-    }
-  </style>
+        /* Fading animation for "Thinking..." text */
+        @keyframes fade {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+    </style>
 </head>
 
 <body>
+    <div class="chat-app-container">
+        <div class="header">
+            <h1 class="heading">Bo Yu ChatBot</h1>
+        </div>
 
-  <!-- Main chat app container -->
-  <div class="chat-app-container">
+        <form id="chat-form">
+            <div class="form-container">
+                <input
+                    type="text"
+                    id="query-input"
+                    name="input_text"
+                    placeholder="Type your message here..."
+                    autocomplete="off"
+                    aria-label="Chat input"
+                    maxlength="500"
+                    required
+                >
 
-    <!-- Header section displaying app title -->
-    <div class="header">
-      <h1 class="heading">Bo Yu llama Bot</h1>
+                <button type="submit" class="submit-button" aria-label="Send">
+                    <img src="{{ url_for('static', filename='images/send-button.png') }}" alt="Send" class="send-icon">
+                </button>
+            </div>
+
+            <div id="loading-indicator">
+                Thinking<span id="dots"></span>
+            </div>
+        </form>
+
+        <div class="response-container">
+
+            <div class="input-text-container" id="user-query-box" style="display:none;">
+                <svg width="25" height="25" viewBox="0 0 24 24" fill="none">
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12ZM12 7.75C11.3787 7.75 10.875 8.25368 10.875 8.875C10.875 9.28921 10.5392 9.625 10.125 9.625C9.71079 9.625 9.375 9.28921 9.375 8.875C9.375 7.42525 10.5503 6.25 12 6.25C13.4497 6.25 14.625 7.42525 14.625 8.875C14.625 9.58584 14.3415 10.232 13.883 10.704C13.7907 10.7989 13.7027 10.8869 13.6187 10.9708C13.4029 11.1864 13.2138 11.3753 13.0479 11.5885C12.8289 11.8699 12.75 12.0768 12.75 12.25V13C12.75 13.4142 12.4142 13.75 12 13.75C11.5858 13.75 11.25 13.4142 11.25 13V12.25C11.25 11.5948 11.555 11.0644 11.8642 10.6672C12.0929 10.3733 12.3804 10.0863 12.6138 9.85346C12.6842 9.78321 12.7496 9.71789 12.807 9.65877C13.0046 9.45543 13.125 9.18004 13.125 8.875C13.125 8.25368 12.6213 7.75 12 7.75ZM12 17C12.5523 17 13 16.5523 13 16C13 15.4477 12.5523 15 12 15C11.4477 15 11 15.4477 11 16C11 16.5523 11.4477 17 12 17Z" fill="#fff"/>
+                </svg>
+                <p class="input_query_text" id="user-query-text"></p>
+            </div>
+
+            <div class="output-container">
+                <div class="result-box">
+                    <span id="output-text">
+
+                    </span>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- Form where user types input and submits -->
-    <form id="chat-form" method="POST" action="/">
-      <div class="form-container">
-        
-        <!-- Text input field for user query -->
-        <input type="text" id="query-input" name="input_text" placeholder="Type your message" required>
+    <script>
+        // Get references to HTML elements
+        const form = document.getElementById("chat-form");
+        const input = document.getElementById("query-input");
+        const outputText = document.getElementById("output-text");
+        const loadingIndicator = document.getElementById("loading-indicator");
+        const dots = document.getElementById("dots");
+        const userQueryBox = document.getElementById("user-query-box");
+        const userQueryText = document.getElementById("user-query-text");
 
-        <!-- Submit button with a "send" image -->
-        <button type="submit" class="submit-button">
-          <img src="{{ url_for('static', filename='images/send-button.png') }}" alt="Send">
-        </button>
-      </div>
+        // Initialize variables to manage connection and animation states
+        let evtSource = null;           // Holds the current EventSource (SSE connection)
+        let dotInterval = null;         // Interval timer for loading animation dots
+        let responseComplete = false;   // Flag to indicate if full response is received
+        let isReconnecting = false;     // Prevents multiple reconnection attempts at once
 
-      <!-- Hidden loading indicator, shown when form is submitting -->
-      <div id="loading-indicator">
-        Thinking<span id="dots"></span>
-      </div>
-    </form>
+        // Starts the animated loading indicator (dot animation)
+        function startLoadingAnimation() {
+            outputText.innerHTML = "";
+            loadingIndicator.style.display = "block";
+            let dotCount = 0;
+            dotInterval = setInterval(() => {
+                dotCount = (dotCount + 1) % 4;
+                dots.innerText = '.'.repeat(dotCount); // Cycles from . to ...
+            }, 500);
+            responseComplete = false;
+        }
 
-    <!-- Container for displaying input and output -->
-    <div class="response-container">
+        // Stops the animated loading indicator
+        function stopLoadingAnimation() {
+            clearInterval(dotInterval);
+            loadingIndicator.style.display = "none";
+        }
 
-      <!-- Display the user's input if available -->
-      {% if input_text %}
-        <div class="input-text-container">
-          <svg width="25" height="25" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path fill-rule="evenodd" clip-rule="evenodd" d="M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12ZM12 7.75C11.3787 7.75 10.875 8.25368 10.875 8.875C10.875 9.28921 10.5392 9.625 10.125 9.625C9.71079 9.625 9.375 9.28921 9.375 8.875C9.375 7.42525 10.5503 6.25 12 6.25C13.4497 6.25 14.625 7.42525 14.625 8.875C14.625 9.58584 14.3415 10.232 13.883 10.704C13.7907 10.7989 13.7027 10.8869 13.6187 10.9708C13.4029 11.1864 13.2138 11.3753 13.0479 11.5885C12.8289 11.8699 12.75 12.0768 12.75 12.25V13C12.75 13.4142 12.4142 13.75 12 13.75C11.5858 13.75 11.25 13.4142 11.25 13V12.25C11.25 11.5948 11.555 11.0644 11.8642 10.6672C12.0929 10.3733 12.3804 10.0863 12.6138 9.85346C12.6842 9.78321 12.7496 9.71789 12.807 9.65877C13.0046 9.45543 13.125 9.18004 13.125 8.875C13.125 8.25368 12.6213 7.75 12 7.75ZM12 17C12.5523 17 13 16.5523 13 16C13 15.4477 12.5523 15 12 15C11.4477 15 11 15.4477 11 16C11 16.5523 11.4477 17 12 17Z" fill="#fff"/>
-          </svg>
-          <p class="input_query_text">{{ input_text }}</p>
-        </div>
-      {% endif %}
+        // Handles messages received from the server
+        function handleSSEMessage(event) {
+            console.log(JSON.stringify(event.data));
 
-      <!-- Display bot's output if available -->
-      {% if output %}
-        <div class="output-container">
-          <!-- Wrap the output in the result-box for consistent styling -->
-          <div class="result-box">
-            <p id="output-text">{{ output|safe }}</p>
-          </div>
-        </div>
-      {% endif %}
-      
-    </div> <!-- End of response container -->
+            // Ignore keep-alive messages
+            if (event.data === "keep-alive") return;
 
-  </div> <!-- End of chat-app-container -->
+            // Handle errors sent as message data
+            if (event.data.startsWith("Error:")) {
+                outputText.innerHTML = `<span style="color:red;">${event.data}</span>`;
+                stopLoadingAnimation();
+                if (evtSource && evtSource.readyState !== EventSource.CLOSED) {
+                    evtSource.close();
+                }
+                isReconnecting = false;
+                return;
+            }
 
-  <script>
-    const form = document.getElementById("chat-form");
-    const input = document.getElementById("query-input");
-    const loadingIndicator = document.getElementById("loading-indicator");
-    const dots = document.getElementById("dots");
+            // Render markdown content if message starts with <markdown>
+            if (event.data.startsWith("<markdown>")) {
+                const markdownContent = event.data.substring("<markdown>".length, event.data.lastIndexOf("</markdown>"));
+                outputText.innerHTML += markdown(markdownContent);
+            } 
+            // Append plain text content if response is not complete yet
+            else if (!responseComplete) {
+                outputText.innerHTML += event.data;
+            }
+        }
 
-    form.addEventListener("submit", function(e) {
-      const value = input.value.trim();
-      if (!value) {
-        e.preventDefault();
-        return;
-      }
-      loadingIndicator.style.display = "block";
-      let dotCount = 0;
-      setInterval(() => {
-        dotCount = (dotCount + 1) % 4;
-        dots.innerText = '.'.repeat(dotCount);
-      }, 500);
-    });
-  </script>
+        // Handles SSE errors and tries to reconnect if necessary
+        function handleSSEError(error) {
+            console.error("SSE error:", error);
+            stopLoadingAnimation();
 
+            // Attempt reconnect only if response isn't complete and we haven't already tried
+            if (!responseComplete && !isReconnecting) {
+                isReconnecting = true;
+                outputText.innerHTML += "<br><span style='color:red;'>[Connection lost. Attempting to reconnect...]</span>";
+
+                // Reconnect after a short delay
+                setTimeout(() => {
+                    initiateSSE(input.value.trim()); // Reuse the same query
+                }, 5000);
+            }
+        }
+
+        // Handles when the SSE connection is successfully established
+        function handleSSEOpen() {
+            input.value = "";
+            outputText.innerHTML += "<br><span style='color:green;'>[Connected.]</span>";
+            isReconnecting = false;
+        }
+
+        // Handles the custom "done" event from the server to indicate response is finished
+        function handleSSEDone(event) {
+            console.log("Stream done.");
+            stopLoadingAnimation();
+            responseComplete = true;
+
+            // Cleanly close the EventSource connection
+            if (evtSource && evtSource.readyState !== EventSource.CLOSED) {
+                evtSource.close();
+            }
+        }
+
+        // Initiates a new SSE request to the backend
+        function initiateSSE(query) {
+            // Close any existing connection before starting a new one
+            if (evtSource && evtSource.readyState !== EventSource.CLOSED) {
+                evtSource.close();
+            }
+
+            // Abort if query is empty
+            if (!query) {
+                stopLoadingAnimation();
+                isReconnecting = false;
+                return;
+            }
+
+            // Start UI loading animation
+            startLoadingAnimation();
+
+            // Create new EventSource to stream response from backend
+            evtSource = new EventSource(`/stream?input_text=${encodeURIComponent(query)}`);
+            evtSource.onmessage = handleSSEMessage;
+            evtSource.onerror = handleSSEError;
+            evtSource.onopen = handleSSEOpen;
+
+            // Listen for custom 'done' event from server
+            evtSource.addEventListener("done", handleSSEDone);
+        }
+
+        // Form submit listener — triggers when user sends a query
+        form.addEventListener("submit", function (e) {
+            e.preventDefault();
+            const query = input.value.trim();
+            if (!query) return;
+
+            // Display user's query above the response
+            userQueryText.textContent = query;
+            userQueryBox.style.display = "flex";
+
+            // Start SSE request
+            initiateSSE(query);
+        });
+
+        // Clears input field when ESC is pressed
+        input.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") input.value = "";
+        });
+    </script>
 </body>
 </html>
