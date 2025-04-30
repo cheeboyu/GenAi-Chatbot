@@ -115,6 +115,7 @@
         // Handles messages received from the server
         function handleSSEMessage(event) {
             console.log(JSON.stringify(event.data));
+            console.log("Received SSE message:", event.data);
 
             // Ignore keep-alive messages
             if (event.data === "keep-alive") return;
