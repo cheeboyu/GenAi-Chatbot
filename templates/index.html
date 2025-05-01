@@ -104,6 +104,9 @@
                 dots.innerText = '.'.repeat(dotCount); // Cycles from . to ...
             }, 500);
             responseComplete = false;
+            
+            // Make sure the output container is shown when the response is being streamed
+            document.querySelector('.output-container').style.display = "block";
         }
 
         // Stops the animated loading indicator
@@ -214,6 +217,9 @@
             // Display user's query above the response
             userQueryText.textContent = query;
             userQueryBox.style.display = "flex";
+
+            // Make sure the output container is shown when streaming begins
+            document.querySelector('.output-container').style.display = "block";
 
             // Start SSE request
             initiateSSE(query);

@@ -180,3 +180,8 @@ button.submit-button img {
     width: 22px;
     height: 22px;
   }  
+
+  /* Initially hide the output container */
+.output-container {
+    display: none;
+}
